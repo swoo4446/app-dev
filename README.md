@@ -56,9 +56,3 @@ http://127.0.0.1:8000/docs
 - `sorted()`를 활용한 데이터 정렬
 - `skip`, `limit` 기반 페이지네이션
 - FastAPI와 HTML / CSS / JavaScript 연동
-
-sorted()를 활용한 데이터 정렬
-
-skip, limit 기반 페이지네이션
-
-FastAPI와 HTML/CSS/JavaScript 연동
