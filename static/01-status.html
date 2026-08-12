@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>서버 상태</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f7fa;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .card {
+            width: 300px;
+            margin: 20px auto;
+            padding: 25px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px #ddd;
+        }
+
+        #status {
+            color: #4f7cff;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🖥️ 서버 상태</h1>
+
+    <div class="card">
+        <p id="status">확인 중...</p>
+        <p id="info"></p>
+    </div>
+
+    <script>
+        async function load() {
+            const health = await (await fetch("/health")).json();
+            const info = await (await fetch("/info")).json();
+
+            document.getElementById("status").textContent =
+                "상태: " + health.status;
+
+            document.getElementById("info").textContent =
+                info.name + " v" + info.version;
+        }
+
+        load();
+    </script>
+
+</body>
+</html>

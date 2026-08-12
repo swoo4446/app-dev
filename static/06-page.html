@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>페이지네이션</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f7fa;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+
+        button {
+            background: #4f7cff;
+            color: white;
+            border: 0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 3px 10px #ddd;
+        }
+
+        th, td {
+            padding: 12px 25px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #4f7cff;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>📄 페이지네이션</h1>
+        <button id="prevBtn">이전</button>
+        <button id="nextBtn">다음</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>번호</th>
+                <th>제목</th>
+            </tr>
+        </thead>
+        <tbody id="result"></tbody>
+    </table>
+
+    <script>
+        let skip = 0;
+        const limit = 2;
+
+        async function render() {
+            if (skip < 0) skip = 0;
+
+            const books = await (await fetch(
+                `/books/page?skip=${skip}&limit=${limit}`
+            )).json();
+
+            result.innerHTML = books.map(b => `
+                <tr>
+                    <td>${b.id}</td>
+                    <td>${b.title}</td>
+                </tr>
+            `).join("");
+        }
+
+        prevBtn.onclick = () => {
+            skip -= limit;
+            render();
+        };
+
+        nextBtn.onclick = () => {
+            skip += limit;
+            render();
+        };
+
+        render();
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>도서 조회</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f7fa;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        button {
+            background: #4f7cff;
+            color: white;
+            border: 0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>📖 도서 단건 조회</h1>
+        <input id="bookId" type="number" placeholder="도서 번호">
+        <button id="findBtn">조회</button>
+    </div>
+
+    <p id="result"></p>
+
+    <script>
+        document.getElementById("findBtn").onclick = async () => {
+
+            const id = document.getElementById("bookId").value;
+            const result = document.getElementById("result");
+
+            if (!id) {
+                result.textContent = "도서 번호를 입력해주세요.";
+                return;
+            }
+
+            const book = await (await fetch("/books/" + id)).json();
+
+            result.textContent = book.error
+                ? "찾을 수 없습니다."
+                : `${book.title} - ${book.author} (${book.year})`;
+        };
+    </script>
+
+</body>
+</html>

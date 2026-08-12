@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>도서 목록</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f7fa;
+            padding: 50px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        button {
+            background: #4f7cff;
+            color: white;
+            border: 0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 3px 10px #ddd;
+        }
+
+        th, td {
+            padding: 12px 25px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #4f7cff;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>📚 도서 목록</h1>
+        <button id="loadBtn">목록 불러오기</button>
+    </div>
+
+    <table id="bookTable" style="display:none;">
+        <thead>
+            <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>저자</th>
+                <th>출판년도</th>
+            </tr>
+        </thead>
+        <tbody id="result"></tbody>
+    </table>
+
+    <script>
+        loadBtn.onclick = async () => {
+            const books = await (await fetch("/books")).json();
+
+            result.innerHTML = books.map(b => `
+                <tr>
+                    <td>${b.id}</td>
+                    <td>${b.title}</td>
+                    <td>${b.author}</td>
+                    <td>${b.year}</td>
+                </tr>
+            `).join("");
+
+            bookTable.style.display = "table";
+        };
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>도서 검색</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f7fa;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        button {
+            background: #4f7cff;
+            color: white;
+            border: 0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 3px 10px #ddd;
+        }
+
+        th, td {
+            padding: 12px 25px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #4f7cff;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>🔍 도서 검색</h1>
+        <input id="keyword" placeholder="제목 키워드">
+        <button id="searchBtn">검색</button>
+    </div>
+
+    <table id="bookTable" style="display:none;">
+        <thead>
+            <tr>
+                <th>제목</th>
+                <th>저자</th>
+            </tr>
+        </thead>
+        <tbody id="result"></tbody>
+    </table>
+
+    <script>
+        searchBtn.onclick = async () => {
+            const books = await (await fetch(
+                "/books/search?keyword=" + encodeURIComponent(keyword.value)
+            )).json();
+
+            result.innerHTML = books.map(b => `
+                <tr>
+                    <td>${b.title}</td>
+                    <td>${b.author}</td>
+                </tr>
+            `).join("");
+
+            bookTable.style.display = "table";
+        };
+    </script>
+
+</body>
+</html>
