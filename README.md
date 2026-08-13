@@ -7,7 +7,6 @@ FastAPI의 기본 구조와 REST API 동작 방식을 학습하기 위해 제작
 
 - Python
 - FastAPI
-- Uvicorn
 - HTML / CSS / JavaScript
 
 ## ✨ 주요 기능
