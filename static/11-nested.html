@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>상세 등록</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f7fa;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .form {
+            width: 380px;
+            margin: 20px auto;
+            text-align: left;
+        }
+
+        .form div {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+        }
+
+        label {
+            width: 110px;
+            font-weight: bold;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4f7cff;
+            color: white;
+            border: 0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #result {
+            width: 380px;
+            margin: 20px auto;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            text-align: left;
+            box-shadow: 0 3px 10px #ddd;
+        }
+
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 3px 10px #ddd;
+        }
+
+        th, td {
+            padding: 12px 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #4f7cff;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>📚 태그·출판사 포함 등록</h1>
+
+    <div class="form">
+        <div>
+            <label>제목 :</label>
+            <input id="title" placeholder="제목">
+        </div>
+
+        <div>
+            <label>저자 :</label>
+            <input id="author" placeholder="저자">
+        </div>
+
+        <div>
+            <label>연도 :</label>
+            <input id="year" type="number" placeholder="연도">
+        </div>
+
+        <div>
+            <label>태그 :</label>
+            <input id="tags" placeholder="쉼표로 구분">
+        </div>
+
+        <div>
+            <label>출판사 :</label>
+            <input id="pubName" placeholder="출판사 이름 (선택)">
+        </div>
+
+        <div>
+            <label>도시 :</label>
+            <input id="pubCity" placeholder="출판사 도시 (선택)">
+        </div>
+
+        <button id="saveBtn">등록</button>
+    </div>
+
+    <pre id="result"></pre>
+
+    <h2>📖 도서 목록</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>저자</th>
+                <th>연도</th>
+                <th>태그</th>
+                <th>출판사</th>
+            </tr>
+        </thead>
+
+        <tbody id="list"></tbody>
+    </table>
+
+    <script>
+        async function loadList() {
+            const books = await (await fetch("/books")).json();
+
+            document.getElementById("list").innerHTML = books.map(b => `
+                <tr>
+                    <td>${b.id}</td>
+                    <td>${b.title}</td>
+                    <td>${b.author}</td>
+                    <td>${b.year}</td>
+                    <td>${b.tags?.join(", ") || "-"}</td>
+                    <td>
+                        ${b.publisher
+                            ? b.publisher.name + " (" + (b.publisher.city || "-") + ")"
+                            : "-"}
+                    </td>
+                </tr>
+            `).join("");
+        }
+
+        document.getElementById("saveBtn").onclick = async () => {
+
+            const tagText = document.getElementById("tags").value;
+            const pubName = document.getElementById("pubName").value;
+            const pubCity = document.getElementById("pubCity").value;
+
+            const payload = {
+                title: document.getElementById("title").value,
+                author: document.getElementById("author").value,
+                year: Number(document.getElementById("year").value),
+                tags: tagText
+                    ? tagText.split(",").map(t => t.trim())
+                    : []
+            };
+
+            if (pubName) {
+                payload.publisher = { name: pubName };
+
+                if (pubCity) {
+                    payload.publisher.city = pubCity;
+                }
+            }
+
+            const res = await fetch("/books", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+
+            document.getElementById("result").textContent =
+                "상태 " + res.status + "\n" +
+                JSON.stringify(data, null, 2);
+
+            if (res.status === 201) {
+                [
+                    "title",
+                    "author",
+                    "year",
+                    "tags",
+                    "pubName",
+                    "pubCity"
+                ].forEach(id => {
+                    document.getElementById(id).value = "";
+                });
+
+                await loadList();
+            }
+        };
+
+        loadList();
+    </script>
+
+</body>
+</html>

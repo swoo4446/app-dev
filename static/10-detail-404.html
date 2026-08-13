@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="utf-8">
-    <title>도서 조회</title>
+    <title>단건 조회</title>
 
     <style>
         body {
@@ -38,6 +37,7 @@
         #result {
             margin-top: 20px;
             font-size: 18px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -45,7 +45,7 @@
 <body>
 
     <div class="header">
-        <h1>📖 도서 단건 조회</h1>
+        <h1>📖 도서 조회</h1>
         <input id="bookId" type="number" placeholder="도서 번호">
         <button id="findBtn">조회</button>
     </div>
@@ -56,29 +56,26 @@
         document.getElementById("findBtn").onclick = async () => {
 
             const id = document.getElementById("bookId").value;
+            const res = await fetch("/books/" + id);
+            const data = await res.json();
             const result = document.getElementById("result");
 
-            if (!id) {
-                result.textContent = "도서 번호를 입력해주세요.";
-                return;
-            }
-
-            const res = await fetch("/books/" + id);
-            const book = await res.json();
-
-            console.log("status:", res.status);
-            console.log("data:", book);
-
             if (res.status === 404) {
-                result.textContent = "❌ " + book.detail;
-                return;
-            }
+                result.style.color = "red";
+                result.textContent = "❌ " + data.detail;
 
-            result.textContent =
-                `${book.title} - ${book.author} (${book.year})`;
+            } else if (res.ok) {
+                result.style.color = "#4f7cff";
+                result.textContent =
+                    `${data.title} - ${data.author} (${data.year})`;
+
+            } else {
+                result.style.color = "red";
+                result.textContent =
+                    "❌ 요청 실패 (상태 " + res.status + ")";
+            }
         };
     </script>
 
 </body>
-
 </html>

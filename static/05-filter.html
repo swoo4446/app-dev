@@ -58,7 +58,7 @@
     <div class="header">
         <h1>👤 저자 필터·정렬</h1>
 
-        <input id="author" placeholder="저자 이름">
+        <input id="author" type="text" placeholder="저자 이름">
 
         <select id="sort">
             <option value="">정렬 안 함</option>
@@ -68,7 +68,7 @@
         <button id="filterBtn">적용</button>
     </div>
 
-    <table id="bookTable" style="display:none;">
+    <table>
         <thead>
             <tr>
                 <th>제목</th>
@@ -81,11 +81,12 @@
     </table>
 
     <script>
-        filterBtn.onclick = async () => {
-            const url =
-                "/books/filter?author=" + encodeURIComponent(author.value) +
-                "&sort=" + sort.value;
+        const result = document.getElementById("result");
+        const filterBtn = document.getElementById("filterBtn");
+        const author = document.getElementById("author");
+        const sort = document.getElementById("sort");
 
+        async function render(url) {
             const books = await (await fetch(url)).json();
 
             result.innerHTML = books.map(b => `
@@ -95,9 +96,18 @@
                     <td>${b.year}</td>
                 </tr>
             `).join("");
+        }
 
-            bookTable.style.display = "table";
+        filterBtn.onclick = () => {
+            const url =
+                "/books/filter?author=" + encodeURIComponent(author.value) +
+                "&sort=" + sort.value;
+
+            render(url);
         };
+
+        // 페이지 접속 시 전체 도서 목록 출력
+        render("/books");
     </script>
 
 </body>

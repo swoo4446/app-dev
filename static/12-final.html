@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>도서 등록 최종</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f7fa;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .form {
+            width: 320px;
+            margin: 20px auto;
+            text-align: left;
+        }
+
+        .form div {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+        }
+
+        label {
+            width: 70px;
+            font-weight: bold;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4f7cff;
+            color: white;
+            border: 0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #msg {
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 3px 10px #ddd;
+        }
+
+        th, td {
+            padding: 12px 25px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #4f7cff;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>📚 도서 등록 (통합)</h1>
+
+    <div class="form">
+        <div>
+            <label>제목 :</label>
+            <input id="title" placeholder="제목">
+        </div>
+
+        <div>
+            <label>저자 :</label>
+            <input id="author" placeholder="저자">
+        </div>
+
+        <div>
+            <label>연도 :</label>
+            <input id="year" type="number" placeholder="연도">
+        </div>
+
+        <button id="saveBtn">등록</button>
+    </div>
+
+    <p id="msg"></p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>저자</th>
+                <th>연도</th>
+            </tr>
+        </thead>
+        <tbody id="list"></tbody>
+    </table>
+
+    <script>
+        async function loadList() {
+            const books = await (await fetch("/books")).json();
+            const list = document.getElementById("list");
+
+            list.innerHTML = books.map(b => `
+                <tr>
+                    <td>${b.id}</td>
+                    <td>${b.title}</td>
+                    <td>${b.author}</td>
+                    <td>${b.year}</td>
+                </tr>
+            `).join("");
+        }
+
+        function showMessage(text, isError) {
+            const msg = document.getElementById("msg");
+            msg.textContent = text;
+            msg.style.color = isError ? "red" : "green";
+        }
+
+        document.getElementById("saveBtn").onclick = async () => {
+
+            const payload = {
+                title: document.getElementById("title").value,
+                author: document.getElementById("author").value,
+                year: Number(document.getElementById("year").value)
+            };
+
+            const res = await fetch("/books", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+
+            if (res.status === 201) {
+                showMessage("✅ 등록 완료: " + data.title, false);
+                loadList();
+
+            } else if (res.status === 409) {
+                showMessage("❌ 중복: " + data.detail, true);
+
+            } else if (res.status === 422) {
+                const messages = data.detail.map(
+                    e => e.loc.join(" → ") + " : " + e.msg
+                );
+
+                showMessage("❌ 입력 오류: " + messages.join(" / "), true);
+
+            } else {
+                showMessage(
+                    "❌ 알 수 없는 오류 (상태 " + res.status + ")",
+                    true
+                );
+            }
+        };
+
+        loadList();
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>검증 오류 표시</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f5f7fa;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .form {
+            width: 320px;
+            margin: 20px auto;
+            text-align: left;
+        }
+
+        .form div {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+        }
+
+        label {
+            width: 70px;
+            font-weight: bold;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4f7cff;
+            color: white;
+            border: 0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        #errors {
+            width: 320px;
+            margin: 10px auto;
+            color: red;
+            text-align: left;
+        }
+
+        #ok {
+            color: #4f7cff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>📚 등록 (오류 표시)</h1>
+
+    <div class="form">
+        <div>
+            <label>제목 :</label>
+            <input id="title" placeholder="제목">
+        </div>
+
+        <div>
+            <label>저자 :</label>
+            <input id="author" placeholder="저자">
+        </div>
+
+        <div>
+            <label>연도 :</label>
+            <input id="year" type="number" placeholder="연도">
+        </div>
+
+        <button id="saveBtn">등록</button>
+    </div>
+
+    <p id="status"></p>
+    <ul id="errors"></ul>
+    <p id="ok"></p>
+
+    <script>
+        document.getElementById("saveBtn").onclick = async () => {
+
+            const payload = {
+                title: document.getElementById("title").value,
+                author: document.getElementById("author").value,
+                year: Number(document.getElementById("year").value)
+            };
+
+            const res = await fetch("/books", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+
+            const status = document.getElementById("status");
+            const errors = document.getElementById("errors");
+            const ok = document.getElementById("ok");
+
+            status.textContent = "상태: " + res.status;
+            errors.innerHTML = "";
+            ok.textContent = "";
+
+            if (res.status === 422) {
+                for (const err of data.detail) {
+                    const li = document.createElement("li");
+                    li.textContent =
+                        err.loc.join(" → ") + " : " + err.msg;
+
+                    errors.appendChild(li);
+                }
+            } else if (res.ok) {
+                ok.textContent = "✅ 등록 완료: " + data.title;
+            } else {
+                ok.textContent = "❌ 오류: " + data.detail;
+            }
+        };
+    </script>
+
+</body>
+</html>
