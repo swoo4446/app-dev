@@ -1,7 +1,9 @@
 from fastapi import FastAPI, HTTPException, status
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
-from pydantic import field_validator
+from pydantic import BaseModel
+from schemas import BookResponse, BookCreate, WeatherResponse, GoogleBooks
+from external_api import fetch_weather, fetch_books
+import httpx
 
 app = FastAPI(
     title="도서 관리 API",
@@ -10,28 +12,6 @@ app = FastAPI(
 )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-class Publisher(BaseModel):
-    name: str
-    city: str = "서울"
-
-class BookCreate(BaseModel):
-    title : str = Field(min_length=1, max_length=20)
-    author: str = Field(min_length=1, max_length=20)
-    year: int = Field(ge=1800, le=2026)
-    tags: list[str] = Field(default_factory=list)
-    publisher: Publisher | None = None
-    @field_validator("title")
-    @classmethod
-    def strip_title(cls, v: str) -> str:
-        v = v.strip()
-        if not v:
-            raise ValueError("제목은 공백일 수 없습니다")
-        return v
-
-class BookResponse(BookCreate):
-    id: int
-
 
 # 샘플 도서 데이터
 books = [
@@ -47,12 +27,10 @@ def read_root():
     """API 기본 정보를 반환합니다."""
     return {"message": "도서 관리 API"}
 
-
 @app.get("/health")
 def health():
     """서버 상태를 확인합니다."""
     return {"status": "healthy"}
-
 
 @app.get("/info")
 def info():
@@ -62,12 +40,10 @@ def info():
         "version": "0.1.0",
     }
 
-
 @app.get("/books", response_model=list[BookResponse])
 def list_books():
     """전체 도서 목록을 조회합니다."""
     return books
-
 
 @app.get("/books/search")
 def search_books(keyword: str = ""):
@@ -76,7 +52,6 @@ def search_books(keyword: str = ""):
         return books
 
     return [book for book in books if keyword in book["title"]]
-
 
 @app.get("/books/filter")
 def filter_books(author: str = "", sort: str = ""):
@@ -92,21 +67,10 @@ def filter_books(author: str = "", sort: str = ""):
 
     return result
 
-
 @app.get("/books/page")
 def page_books(skip: int = 0, limit: int = 2):
     """도서 목록을 페이지 단위로 조회합니다."""
     return books[skip:skip + limit]
-
-
-@app.get("/books/{book_id}", response_model=BookResponse)
-def read_book(book_id: int):
-    """ID를 이용해 특정 도서를 조회합니다."""
-    for book in books:
-       if book["id"] == book_id:
-            return book
-    raise HTTPException(status_code=404, detail="도서를 찾을 수 없습니다.")
-
 
 @app.post("/books", response_model=BookResponse, status_code=status.HTTP_201_CREATED)
 def create_book(book: BookCreate):
@@ -122,3 +86,20 @@ def create_book(book: BookCreate):
     books.append(new_book)
 
     return new_book
+
+@app.get("/weather", response_model=WeatherResponse)
+async def weather(latitude: float = 36.8, longitude: float = 127.1):
+     return await fetch_weather(latitude, longitude)
+
+#endpoint
+@app.get("/book/googleBooks", response_model=list[GoogleBooks])
+async def search_books_external(keyword:str, limit:int = 5):
+    return await fetch_books(keyword,limit)
+
+@app.get("/books/{book_id}", response_model=BookResponse)
+def read_book(book_id: int):
+    """ID를 이용해 특정 도서를 조회합니다."""
+    for book in books:
+       if book["id"] == book_id:
+            return book
+    raise HTTPException(status_code=404, detail="도서를 찾을 수 없습니다.")
