@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from pydantic import field_validator
+from pydantic import BaseModel, Field, field_validator
+
 
 class Publisher(BaseModel):
     name: str = Field(
@@ -98,6 +98,16 @@ class BookResponse(BookCreate):
         examples=[1]
     )
 
+class BookUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=100)
+    author: str | None = Field(default=None, min_length=1, max_length=50)
+    year  : int | None = Field(default=None, ge=1900, le=2026,
+                            description="출판 연도",
+                            examples=[2024],)
+    tags : list[str] | None = Field(default=None,
+                                description="도서 태그 목록",
+                                examples=[["python", "web"]],)
+    publisher : Publisher | None = Field(default=None, description="출판사 정보")
 
 class WeatherResponse(BaseModel):
     latitude: float = Field(
@@ -179,3 +189,6 @@ class ExternalBook(BaseModel):
         description="외부 API에서 제공하는 도서 출판일",
         examples=["2024-01-15"]
     )
+
+class ErrorDetail(BaseModel):
+    detail: str = Field(description="오류 메시지", examples=["도서를 찾을 수 없습니다"])
